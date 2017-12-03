@@ -190,10 +190,26 @@ public class BPELScaleOutProcessBuilder extends AbstractScaleOutPlanBuilder {
 			for (AnnotatedAbstractNodeTemplate stratNodeTemplate : scalingPlanDefinition.selectionStrategy2BorderNodes) {
 				IScalingPlanBuilderSelectionPlugin selectionPlugin = this.findSelectionPlugin(stratNodeTemplate);
 				if (selectionPlugin != null) {					
-					BPELScopeActivity scope = this.planHandler.getTemplateBuildPlanById(stratNodeTemplate.getId(), bpelScaleOutProcess);
+					BPELScopeActivity scope = this.planHandler.getTemplateBuildPlanById(
+							stratNodeTemplate.getIngoingRelations().get(0).getSource().getId(), 
+							bpelScaleOutProcess);
 					selectionPlugin.handle(new TemplatePlanContext(scope, propMap, serviceTemplate), (AbstractNodeTemplate) stratNodeTemplate, new ArrayList<String>(stratNodeTemplate.getAnnotations()));
 					this.addNodeInstanceIdToOutput(scope);
 				}
+				else {
+
+				}
+			}
+
+			/**
+			 * Anshuman Dash
+			 */
+			//To Handle Ouptput variable mapping for Scaling Plan with a single Node
+			if(scalingPlanDefinition.selectionStrategy2BorderNodes.size() == 0) {
+				BPELScopeActivity scope = this.planHandler.getTemplateBuildPlanById(
+						scalingPlanDefinition.nodeTemplates.get(0).getId(), 
+						bpelScaleOutProcess);
+				this.addNodeInstanceIdToOutput(scope);
 			}
 			
 			

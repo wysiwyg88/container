@@ -28,6 +28,8 @@ import org.opentosca.planbuilder.export.Exporter;
 import org.opentosca.planbuilder.importer.Importer;
 import org.opentosca.planbuilder.model.plan.AbstractPlan;
 import org.opentosca.planbuilder.model.plan.bpel.BPELPlan;
+import org.opentosca.planbuilder.model.tosca.AbstractServiceTemplate;
+import org.opentosca.planbuilder.topologysplitter.TopologySplitDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -149,6 +151,37 @@ public class CsarService {
 		}
 
 		return file;
+	}
+	
+	/**
+	 * Generates Split Topologies for generating Scale Plans
+	 *
+	 * @param csarId the {@link CSARID} to generate build plans
+	 * @return the new {@link CSARID} for the repackaged CSAR or null if an
+	 *         error occurred
+	 * @author Anshuman Dash
+	 */
+	public CSARID splitTopology(final CSARID csarId) {
+		final Importer planBuilderImporter = new Importer();
+		//final Exporter planBuilderExporter = new Exporter();
+		
+		final List<TopologySplitDefinition> sd = planBuilderImporter.importServiceTemplate(csarId);
+
+		if (sd == null) {
+			return csarId;
+		}
+		
+		//TODO:TopologySplitter - Write Exporter Logic
+		//final File file = planBuilderExporter.exportSplitDefinitions(sd, csarId);
+		
+		try {
+			this.fileService.deleteCSAR(csarId);
+			//return this.fileService.storeCSAR(file.toPath());
+		} catch (final Exception e) {
+			logger.error("Could not store repackaged CSAR: {}", e.getMessage(), e);
+		}
+		
+		return null;
 	}
 
 	/**

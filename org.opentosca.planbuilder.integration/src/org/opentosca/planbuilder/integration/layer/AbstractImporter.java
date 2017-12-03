@@ -11,6 +11,10 @@ import org.opentosca.planbuilder.bpel.BPELScaleOutProcessBuilder;
 import org.opentosca.planbuilder.bpel.BPELTerminationProcessBuilder;
 import org.opentosca.planbuilder.model.plan.AbstractPlan;
 import org.opentosca.planbuilder.model.tosca.AbstractDefinitions;
+import org.opentosca.planbuilder.model.tosca.AbstractServiceTemplate;
+import org.opentosca.planbuilder.topologysplitter.AbstractTopologySplitter;
+import org.opentosca.planbuilder.topologysplitter.TopologySplitDefinition;
+import org.opentosca.planbuilder.topologysplitter.TopologySplitter;
 
 /**
  * <p>
@@ -24,6 +28,15 @@ import org.opentosca.planbuilder.model.tosca.AbstractDefinitions;
  */
 public abstract class AbstractImporter {
 
+	/*
+	 * @author Anshuman Dash
+	 */
+	public List<TopologySplitDefinition> splitTopology(AbstractDefinitions defs, String csarName) {
+		AbstractTopologySplitter topologySplitter = new TopologySplitter();
+		
+		return topologySplitter.splitTopology(csarName, defs);
+	}
+	
 	/**
 	 * Generates Plans for ServiceTemplates inside the given Definitions document
 	 * 

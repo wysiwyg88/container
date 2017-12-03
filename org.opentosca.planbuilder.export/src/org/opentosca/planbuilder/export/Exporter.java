@@ -7,7 +7,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.xml.bind.JAXBContext;
@@ -33,6 +35,8 @@ import org.oasis_open.docs.tosca.ns._2011._12.TParameter;
 import org.oasis_open.docs.tosca.ns._2011._12.TPlan;
 import org.oasis_open.docs.tosca.ns._2011._12.TPlans;
 import org.oasis_open.docs.tosca.ns._2011._12.TServiceTemplate;
+import org.oasis_open.docs.tosca.ns._2011._12.TTag;
+import org.oasis_open.docs.tosca.ns._2011._12.TTags;
 import org.opentosca.container.core.common.SystemException;
 import org.opentosca.container.core.common.UserException;
 import org.opentosca.container.core.model.AbstractFile;
@@ -44,6 +48,7 @@ import org.opentosca.planbuilder.export.exporters.SimpleFileExporter;
 import org.opentosca.planbuilder.integration.layer.AbstractExporter;
 import org.opentosca.planbuilder.model.plan.AbstractPlan;
 import org.opentosca.planbuilder.model.plan.bpel.Deploy;
+import org.opentosca.planbuilder.topologysplitter.TopologySplitDefinition;
 import org.opentosca.planbuilder.model.plan.bpel.BPELPlan;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
@@ -102,6 +107,127 @@ public class Exporter extends AbstractExporter {
 		}
 		
 		return this.exportBPEL(bpelPlans, csarId);
+	}
+	
+	/**
+	 * 
+	 * @param
+	 * @author Anshuman
+	 * @param csarIdxs 
+	 * @return
+	 */
+	public File exportSplitDefinitions(List<TopologySplitDefinition> sd, CSARID csarId) {		
+		// TODO Auto-generated method stub
+		CSARContent csarContent = null;
+		try {
+			csarContent = this.handler.getCSARContentForID(csarId);
+		} catch (final UserException e1) {
+			Exporter.LOG.error("Error occured while trying to retrieve CSAR content", e1);
+		}
+
+		if (csarContent == null) {
+			return null;
+		}
+
+		final String csarName = csarId.getFileName();
+
+		final IFileAccessService service = this.getFileAccessService();
+
+		final File tempDir = service.getTemp();
+		final File pathToRepackagedCsar = service.getTemp();
+		final File repackagedCsar = new File(pathToRepackagedCsar, csarName);
+
+		try {
+			final Set<AbstractFile> files = csarContent.getFilesRecursively();
+			final AbstractFile mainDefFile = csarContent.getRootTOSCA();
+			final File rootDefFile = mainDefFile.getFile().toFile();
+			final Definitions defs = this.parseDefinitionsFile(rootDefFile);
+			final List<TServiceTemplate> servTemps = this.getServiceTemplates(defs);
+
+			//Add Tags to Service Template
+			for (TServiceTemplate serviceTemplate : servTemps) {
+				TTags tags = serviceTemplate.getTags();
+
+				//Get tags in Service Template as Map
+				Map<String, String> mapTags = new HashMap<String, String>();
+				for(TTag tag: tags.getTag()) {
+					mapTags.put(tag.getName(), tag.getValue());
+				}
+
+				TTag newTag = null;
+
+				for(TopologySplitDefinition split: sd) {
+					if(mapTags.containsKey("scalingplans")) {
+						mapTags.put(
+								"scalingplans", 
+								mapTags.get("scalingplans").concat(","+split.getPlanName())
+								);
+					}
+					else {
+						mapTags.put("scalingplans",split.getPlanName());
+
+					}
+
+					//Add the Split Plans Tags
+					mapTags.put(split.getPlanName(), split.getFormattedScalingPlan());
+				}
+
+				for(String key: mapTags.keySet()) {
+					newTag = this.toscaFactory.createTTag();
+					newTag.setName(key);
+					newTag.setValue(mapTags.get(key));
+					tags.getTag().add(newTag);
+				}
+
+				serviceTemplate.setTags(tags);
+			}
+
+			for (final AbstractFile file : files) {
+				if (file.getFile().toFile().toString().equals(rootDefFile.toString())) {
+					continue;
+				}
+
+				final File newLocation = new File(tempDir, file.getPath());
+				Exporter.LOG.debug(newLocation.getAbsolutePath());
+				Exporter.LOG.debug(file.getFile().toString());
+				if (newLocation.isDirectory()) {
+
+					FileUtils.copyDirectory(file.getFile().toFile(), newLocation);
+				} else {
+					FileUtils.copyFile(file.getFile().toFile(), newLocation);
+				}
+
+			}
+
+			// write new defs file
+			final File newDefsFile = new File(tempDir, mainDefFile.getPath());
+			newDefsFile.createNewFile();
+
+			final JAXBContext jaxbContext = JAXBContext.newInstance(Definitions.class);
+
+			final Marshaller m = jaxbContext.createMarshaller();
+
+			FileWriter writer = new FileWriter(newDefsFile);
+
+			m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+			// output to the console: m.marshal(defs, System.out);
+			try {
+				m.marshal(defs, writer);
+			} catch (FactoryConfigurationError e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		}catch (final IOException e) {
+			Exporter.LOG.error("Some IO Exception occured", e);
+		} catch (final JAXBException e) {
+			Exporter.LOG.error("Some error while marshalling with JAXB", e);
+		} catch (final SystemException e) {
+			Exporter.LOG.error("Some error in the openTOSCA Core", e);
+		}
+		service.zip(tempDir, repackagedCsar);
+		Exporter.LOG.debug(repackagedCsar.toString());
+		return repackagedCsar;
 	}
 	
 	public File exportBPEL(List<BPELPlan> plans, CSARID csarId) {

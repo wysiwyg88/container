@@ -15,6 +15,8 @@ import org.opentosca.planbuilder.integration.layer.AbstractImporter;
 import org.opentosca.planbuilder.model.plan.AbstractPlan;
 import org.opentosca.planbuilder.model.plan.bpel.BPELPlan;
 import org.opentosca.planbuilder.model.tosca.AbstractDefinitions;
+import org.opentosca.planbuilder.model.tosca.AbstractServiceTemplate;
+import org.opentosca.planbuilder.topologysplitter.TopologySplitDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +37,22 @@ public class Importer extends AbstractImporter {
 
 	private final CSARHandler handler = new CSARHandler();
 
-	
+	/*
+	 * @author Anshuman Dash
+	 */
+	public List<TopologySplitDefinition> importServiceTemplate(CSARID csarId) {
+		try {
+			CSARContent content = this.handler.getCSARContentForID(csarId);
+			AbstractDefinitions defs = this.createContext(content);
+			List<TopologySplitDefinition> sd = this.splitTopology(defs, csarId.getFileName());
+			return sd;
+		} catch (final UserException e) {
+			Importer.LOG.error("Some error within input", e);
+		} catch (final SystemException e) {
+			Importer.LOG.error("Some internal error", e);
+		}
+		return null;
+	}
 	
 	/**
 	 * Generates a List of BuildPlans for the given CSARID. The BuildPlans are
