@@ -52,26 +52,6 @@ public class TopologySplitter extends AbstractTopologySplitter {
 		}
 		
 		return splitDefinitions;
-		
-			/*for(TopologySplitDefinition split: splitDefinitions) {
-				if(tags.containsKey("scalingplans")) {
-					tags.put(
-							"scalingplans", 
-							tags.get("scalingplans").concat(","+split.getPlanName())
-							);
-				}
-				else {
-					tags.put("scalingplans",split.getPlanName());
-				}
-				
-				//Add the Split Plans Tags
-				tags.put(split.getPlanName(), split.getFormattedScalingPlan());
-			}
-			
-			//TODO Put the Tags back into the Service Template
-	
-		}
-		return null;*/
 	}
 	
 	private List<TopologySplitDefinition> getSplitDefinitions(AbstractTopologyTemplate topology) {
@@ -150,8 +130,8 @@ public class TopologySplitter extends AbstractTopologySplitter {
 			
 			splitDef.setPlanName(splitPlanName);
 			splitDef.setScaleRegionNodes(sourceNodeTemplate.getName());
-			splitDef.setScaleRegionRelations("");
-			splitDef.setScaleStratergy("");
+			splitDef.setScaleRegionRelations("null");
+			splitDef.setScaleStratergy("null");
 		}
 		
 		

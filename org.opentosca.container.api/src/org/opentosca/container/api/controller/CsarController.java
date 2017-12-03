@@ -221,10 +221,10 @@ public class CsarController {
     /*
      * @author Anshuman Dash
      */
-    /*csarId = this.csarService.splitTopology(csarId);
+    csarId = this.csarService.splitTopology(csarId);
     if (csarId == null) {
         return Response.serverError().build();
-      }*/
+      }
     
     csarId = this.csarService.generatePlans(csarId);
     if (csarId == null) {

@@ -163,7 +163,7 @@ public class CsarService {
 	 */
 	public CSARID splitTopology(final CSARID csarId) {
 		final Importer planBuilderImporter = new Importer();
-		//final Exporter planBuilderExporter = new Exporter();
+		final Exporter planBuilderExporter = new Exporter();
 		
 		final List<TopologySplitDefinition> sd = planBuilderImporter.importServiceTemplate(csarId);
 
@@ -172,11 +172,11 @@ public class CsarService {
 		}
 		
 		//TODO:TopologySplitter - Write Exporter Logic
-		//final File file = planBuilderExporter.exportSplitDefinitions(sd, csarId);
+		final File file = planBuilderExporter.exportSplitDefinitions(sd, csarId);
 		
 		try {
 			this.fileService.deleteCSAR(csarId);
-			//return this.fileService.storeCSAR(file.toPath());
+			return this.fileService.storeCSAR(file.toPath());
 		} catch (final Exception e) {
 			logger.error("Could not store repackaged CSAR: {}", e.getMessage(), e);
 		}

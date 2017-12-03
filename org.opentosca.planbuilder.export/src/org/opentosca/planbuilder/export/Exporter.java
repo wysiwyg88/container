@@ -169,7 +169,8 @@ public class Exporter extends AbstractExporter {
 					}
 
 					//Add the Split Plans Tags
-					mapTags.put(split.getPlanName(), split.getFormattedScalingPlan());
+					if(!mapTags.containsKey(split.getFormattedScalingPlan()))
+						mapTags.put(split.getPlanName(), split.getFormattedScalingPlan());
 				}
 
 				for(String key: mapTags.keySet()) {
