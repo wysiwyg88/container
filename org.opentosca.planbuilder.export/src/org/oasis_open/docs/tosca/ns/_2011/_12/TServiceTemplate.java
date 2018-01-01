@@ -102,6 +102,13 @@ public class TServiceTemplate
     public void setTags(TTags value) {
         this.tags = value;
     }
+    
+    /**
+     * Anshuman Dash
+     */
+    public void removeTags() {
+    		this.tags = null;
+    }
 
     /**
      * Gets the value of the boundaryDefinitions property.

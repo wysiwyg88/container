@@ -180,7 +180,10 @@ public class Exporter extends AbstractExporter {
 					tags.getTag().add(newTag);
 				}
 
-				serviceTemplate.setTags(tags);
+				//Remove the old tags
+				//serviceTemplate.removeTags();
+				//Add the new Tags
+				serviceTemplate.setTags(tags); 
 			}
 
 			for (final AbstractFile file : files) {
